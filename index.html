@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reader-Bot — Reading Made Easy</title>
+  <meta name="description" content="AI-powered reading companion. Upload any document, highlight any word, and get instant definitions." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Mammoth.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════ NAVBAR ═══════════ -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar__inner">
+      <a href="#" class="navbar__logo" aria-label="Reader-Bot home" id="logoHome">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span>Reader-Bot</span>
+      </a>
+
+      <div class="navbar__controls">
+        <button class="btn btn--upload" id="navUploadBtn" aria-label="Upload document">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          </svg>
+          <span>Upload</span>
+        </button>
+
+        <!-- History button -->
+        <button class="btn btn--icon" id="historyBtn" aria-label="Search history" title="Search history">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 8v4l3 3"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+        </button>
+
+        <!-- Settings button -->
+        <button class="btn btn--icon" id="settingsBtn" aria-label="Open settings" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+
+        <button class="btn btn--icon theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <input type="file" id="fileInput" accept=".txt,.pdf,.docx" aria-hidden="true" tabindex="-1" style="display:none" />
+
+  <!-- ═══════════ SETTINGS PANEL ═══════════ -->
+  <div class="settings-overlay" id="settingsOverlay" aria-hidden="true"></div>
+  <aside class="settings-panel" id="settingsPanel" aria-label="Settings" role="dialog" aria-modal="true" hidden>
+    <div class="settings-panel__header">
+      <h2 class="settings-panel__title">Settings</h2>
+      <button class="btn btn--icon settings-panel__close" id="settingsClose" aria-label="Close settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="settings-panel__body">
+
+      <!-- Theme -->
+      <section class="settings-section">
+        <h3 class="settings-section__label">Appearance</h3>
+        <div class="theme-options">
+          <button class="theme-option" data-theme-choice="light" aria-label="Light mode">
+            <div class="theme-option__preview theme-option__preview--light">
+              <div class="theme-option__preview-bar"></div>
+              <div class="theme-option__preview-lines"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-option__name">Light</span>
+          </button>
+          <button class="theme-option" data-theme-choice="dark" aria-label="Dark mode">
+            <div class="theme-option__preview theme-option__preview--dark">
+              <div class="theme-option__preview-bar"></div>
+              <div class="theme-option__preview-lines"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-option__name">Dark</span>
+          </button>
+          <button class="theme-option" data-theme-choice="sepia" aria-label="Sepia mode">
+            <div class="theme-option__preview theme-option__preview--sepia">
+              <div class="theme-option__preview-bar"></div>
+              <div class="theme-option__preview-lines"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-option__name">Sepia</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Font size -->
+      <section class="settings-section">
+        <h3 class="settings-section__label">Reading Font Size</h3>
+        <div class="font-size-row">
+          <button class="btn btn--ghost btn--sm font-size-btn" data-size="small" aria-label="Small font">A<small></small></button>
+          <button class="btn btn--ghost btn--sm font-size-btn" data-size="medium" aria-label="Medium font">A</button>
+          <button class="btn btn--ghost btn--sm font-size-btn" data-size="large" aria-label="Large font">A<sup>+</sup></button>
+        </div>
+      </section>
+
+      <!-- Assistant -->
+      <section class="settings-section">
+        <h3 class="settings-section__label">Assistant</h3>
+        <label class="settings-toggle">
+          <span class="settings-toggle__label">Enable text selection assistant</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="assistantToggle" checked aria-label="Enable text selection assistant"/>
+            <span class="toggle-switch__track"></span>
+          </span>
+        </label>
+        <label class="settings-toggle">
+          <span class="settings-toggle__label">Show pronunciation</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="pronunciationToggle" checked aria-label="Show pronunciation"/>
+            <span class="toggle-switch__track"></span>
+          </span>
+        </label>
+        <label class="settings-toggle">
+          <span class="settings-toggle__label">Show usage examples</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="examplesToggle" checked aria-label="Show usage examples"/>
+            <span class="toggle-switch__track"></span>
+          </span>
+        </label>
+        <label class="settings-toggle">
+          <span class="settings-toggle__label">Auto-speak on lookup</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="autoSpeakToggle" aria-label="Auto-speak on lookup"/>
+            <span class="toggle-switch__track"></span>
+          </span>
+        </label>
+      </section>
+
+      <!-- Reading -->
+      <section class="settings-section">
+        <h3 class="settings-section__label">Reading</h3>
+        <label class="settings-toggle">
+          <span class="settings-toggle__label">Reading progress indicator</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="progressToggle" checked aria-label="Reading progress"/>
+            <span class="toggle-switch__track"></span>
+          </span>
+        </label>
+      </section>
+
+      <!-- History -->
+      <section class="settings-section">
+        <h3 class="settings-section__label">History</h3>
+        <button class="btn btn--ghost btn--sm" id="clearHistoryBtn" style="width:100%;justify-content:center;">Clear search history</button>
+      </section>
+
+    </div>
+  </aside>
+
+  <!-- ═══════════ HISTORY PANEL ═══════════ -->
+  <div class="history-overlay" id="historyOverlay" aria-hidden="true"></div>
+  <aside class="history-panel" id="historyPanel" aria-label="Search history" role="dialog" aria-modal="true" hidden>
+    <div class="history-panel__header">
+      <h2 class="history-panel__title">Recent Lookups</h2>
+      <button class="btn btn--icon history-panel__close" id="historyClose" aria-label="Close history">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="history-panel__body" id="historyBody">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
+
+  <!-- ═══════════ READING PROGRESS BAR ═══════════ -->
+  <div class="reading-progress" id="readingProgress" aria-hidden="true">
+    <div class="reading-progress__bar" id="readingProgressBar"></div>
+  </div>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main id="mainContent">
+
+    <!-- ═══════════ HERO ═══════════ -->
+    <section class="hero" id="heroSection" aria-label="Upload section">
+
+      <div class="hero__canvas" aria-hidden="true">
+        <svg viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="1100" height="620" fill="var(--hero-bg)"/>
+          <ellipse cx="300" cy="200" rx="380" ry="280" fill="var(--glow-warm)" filter="url(#blur1)"/>
+          <ellipse cx="820" cy="380" rx="320" ry="240" fill="var(--glow-cool)" filter="url(#blur2)"/>
+          <defs>
+            <filter id="blur1"><feGaussianBlur stdDeviation="60"/></filter>
+            <filter id="blur2"><feGaussianBlur stdDeviation="50"/></filter>
+          </defs>
+          <rect x="290" y="120" width="520" height="440" rx="6" fill="var(--page-l)"/>
+          <rect x="290" y="118" width="524" height="8" rx="3" fill="var(--spine-main)"/>
+          <rect x="808" y="120" width="5" height="440" rx="1" fill="var(--page-r)" opacity="0.6"/>
+          <rect x="810" y="120" width="520" height="440" rx="6" fill="var(--page-r)"/>
+          <rect x="810" y="118" width="524" height="8" rx="3" fill="var(--spine-main)"/>
+          <rect x="300" y="240" width="200" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="300" y="258" width="195" height="2" rx="1" fill="var(--rule)" opacity="0.15"/>
+          <rect x="300" y="274" width="210" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="300" y="290" width="160" height="2" rx="1" fill="var(--rule)" opacity="0.13"/>
+          <rect x="300" y="306" width="205" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          <rect x="300" y="228" width="100" height="11" rx="2" fill="var(--rule)" opacity="0.3"/>
+          <rect x="630" y="240" width="175" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="630" y="258" width="185" height="2" rx="1" fill="var(--rule)" opacity="0.15"/>
+          <rect x="630" y="274" width="160" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          <rect x="630" y="290" width="190" height="2" rx="1" fill="var(--rule)" opacity="0.13"/>
+          <rect x="630" y="306" width="150" height="2" rx="1" fill="var(--rule)" opacity="0.16"/>
+          <rect x="630" y="322" width="195" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="630" y="338" width="140" height="2" rx="1" fill="var(--rule)" opacity="0.14"/>
+          <rect x="630" y="354" width="185" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          <rect x="630" y="360" width="175" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          <rect x="630" y="374" width="190" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="630" y="388" width="138" height="2" rx="1" fill="var(--rule)" opacity="0.15"/>
+          <rect x="630" y="402" width="180" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+          <rect x="630" y="416" width="105" height="2" rx="1" fill="var(--rule)" opacity="0.13"/>
+          <rect x="630" y="430" width="168" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          <rect x="630" y="228" width="88" height="11" rx="2" fill="var(--rule)" opacity="0.28"/>
+          <path d="M842 528 Q850 515 830 510 Q845 505 842 528Z" fill="var(--page-curl)" opacity="0.3"/>
+          <rect x="290" y="536" width="420" height="22" rx="3" fill="var(--stack-a)" />
+          <rect x="288" y="533" width="424" height="7" rx="2" fill="var(--stack-a-top)" />
+          <rect x="708" y="537" width="5" height="20" rx="1" fill="var(--page-r)" opacity="0.45"/>
+          <rect x="305" y="513" width="390" height="25" rx="3" fill="var(--stack-b)" />
+          <rect x="303" y="510" width="394" height="7" rx="2" fill="var(--stack-b-top)" />
+          <rect x="693" y="515" width="5" height="23" rx="1" fill="var(--page-r)" opacity="0.45"/>
+          <g transform="rotate(-16 180 390)">
+            <rect x="140" y="310" width="75" height="120" rx="4" fill="var(--small-l)" />
+            <rect x="140" y="308" width="77" height="10" rx="3" fill="var(--small-l-top)" />
+            <rect x="152" y="330" width="48" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+            <rect x="152" y="340" width="38" height="2" rx="1" fill="var(--rule)" opacity="0.15"/>
+            <rect x="152" y="350" width="48" height="2" rx="1" fill="var(--rule)" opacity="0.2"/>
+            <rect x="152" y="360" width="30" height="2" rx="1" fill="var(--rule)" opacity="0.12"/>
+          </g>
+          <g transform="rotate(12 980 340)">
+            <rect x="955" y="270" width="68" height="100" rx="4" fill="var(--small-r)" />
+            <rect x="955" y="268" width="70" height="9" rx="3" fill="var(--small-r-top)" />
+            <rect x="964" y="288" width="44" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+            <rect x="964" y="297" width="34" height="2" rx="1" fill="var(--rule)" opacity="0.14"/>
+            <rect x="964" y="306" width="44" height="2" rx="1" fill="var(--rule)" opacity="0.18"/>
+          </g>
+          <circle cx="310" cy="190" r="3.5" fill="var(--dot-a)" opacity="0.22"/>
+          <circle cx="245" cy="460" r="2.5" fill="var(--dot-a)" opacity="0.16"/>
+          <circle cx="920" cy="200" r="4"   fill="var(--dot-b)" opacity="0.18"/>
+          <circle cx="980" cy="500" r="2.5" fill="var(--dot-b)" opacity="0.14"/>
+          <circle cx="600" cy="155" r="2.5" fill="var(--dot-a)" opacity="0.14"/>
+          <circle cx="680" cy="590" r="3"   fill="var(--dot-b)" opacity="0.12"/>
+          <line x1="420" y1="196" x2="780" y2="196" stroke="var(--dot-a)" stroke-width="0.8" opacity="0.25"/>
+        </svg>
+      </div>
+
+      <div class="hero__overlay" aria-hidden="true"></div>
+
+      <div class="hero__content">
+        <p class="hero__eyebrow">AI-powered reading companion</p>
+        <h1 class="hero__heading">
+          Read deeper.<br />
+          <em>Understand everything.</em>
+        </h1>
+        <p class="hero__sub">
+          Upload any document and double‑tap a word or highlight a phrase<br class="hero__br" />
+          to instantly get definitions, context, and clarity.
+        </p>
+
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Click or drag a file here to upload">
+          <div class="dropzone__icon-wrap" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            </svg>
+          </div>
+          <span class="dropzone__label">Drop a file or <strong>browse</strong></span>
+          <div class="dropzone__pills">
+            <span class="pill">PDF</span>
+            <span class="pill">DOCX</span>
+            <span class="pill">TXT</span>
+          </div>
+        </div>
+
+        <!-- Feature pills -->
+        <div class="hero__features" aria-label="Key features">
+          <span class="hero__feat"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Instant definitions</span>
+          <span class="hero__feat"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Text-to-speech</span>
+          <span class="hero__feat"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Search history</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ LOADING ═══════════ -->
+    <section class="loading-state" id="loadingState" aria-live="polite" hidden>
+      <div class="loading-state__inner">
+        <div class="loading-state__icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+        </div>
+        <div class="loading-skeleton" aria-hidden="true">
+          <div class="skeleton-line skeleton-line--title"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line skeleton-line--short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line skeleton-line--med"></div>
+          <div class="skeleton-line"></div>
+        </div>
+        <p class="loading-state__label">Preparing your document…</p>
+        <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+    </section>
+
+    <!-- ═══════════ READER ═══════════ -->
+    <section class="reader" id="readerSection" aria-label="Reading area" hidden>
+
+      <div class="reader__meta" id="readerMeta">
+        <div class="reader__meta-inner">
+          <div class="reader__file-info">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+              <polyline points="13 2 13 9 20 9"/>
+            </svg>
+            <span id="readerFileName">document</span>
+            <span class="reader__wc" id="readerWordCount"></span>
+          </div>
+          <div class="reader__meta-actions">
+            <span class="reader__hint" id="selectionHint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M14 10l6.1-6.1M9 21H3v-6M10 14l-6.1 6.1"/></svg>
+              Double-tap or highlight text for definitions
+            </span>
+            <button class="btn btn--ghost btn--sm" id="changeDocBtn" aria-label="Change document">Change document</button>
+          </div>
+        </div>
+      </div>
+
+      <article class="reader__content" id="readerContent" tabindex="0" aria-label="Document content"></article>
+    </section>
+
+  </main>
+
+  <!-- ═══════════ ASSISTANT POPUP ═══════════ -->
+  <div class="assistant-popup" id="assistantPopup" role="dialog" aria-modal="false" aria-label="Word assistant" hidden>
+    <!-- Drag handle -->
+    <div class="assistant-popup__drag-handle" id="assistantDragHandle" title="Drag to move" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="assistant-popup__header">
+      <div class="assistant-popup__term" id="assistantTerm"></div>
+      <div class="assistant-popup__actions">
+        <button class="assistant-popup__btn assistant-popup__speak" id="assistantSpeak" aria-label="Pronounce word" title="Listen to pronunciation">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+        <button class="assistant-popup__btn assistant-popup__copy" id="assistantCopy" aria-label="Copy definition" title="Copy definition">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="assistant-popup__btn assistant-popup__close" id="assistantClose" aria-label="Close assistant">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="assistant-popup__body" id="assistantBody">
+      <!-- Content injected by JS -->
+    </div>
+    <!-- Arrow tip -->
+    <div class="assistant-popup__arrow" id="assistantArrow" aria-hidden="true"></div>
+  </div>
+
+  <!-- ═══════════ DICTIONARY SIDE PANEL ═══════════ -->
+  <aside class="dict-panel" id="dictPanel" aria-label="Dictionary" hidden>
+    <div class="dict-panel__header">
+      <div class="dict-panel__title-row">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span class="dict-panel__label">Dictionary</span>
+      </div>
+      <div class="dict-panel__actions">
+        <button class="dict-panel__btn dict-panel__speak" id="dictSpeak" aria-label="Pronounce word" title="Listen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+        <button class="dict-panel__btn dict-panel__copy" id="dictCopy" aria-label="Copy definition" title="Copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="dict-panel__btn dict-panel__close" id="dictClose" aria-label="Close dictionary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="dict-panel__term" id="dictTerm"></div>
+    <div class="dict-panel__body" id="dictBody">
+      <div class="dict-panel__empty">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <p>Double-click any word<br/>to see its definition here</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════ TOAST ═══════════ -->
+  <div class="toast" id="toast" role="alert" aria-live="assertive" hidden>
+    <svg class="toast__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="toastMessage">Something went wrong.</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
